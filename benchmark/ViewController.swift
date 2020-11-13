@@ -8,22 +8,26 @@
 
 import UIKit
 
+@available(iOS 13.0, *)
 class ViewController: UIViewController {
     @IBOutlet weak var label: UILabel!
     @IBOutlet weak var button: UIButton!
 
     var inputData: CVPixelBuffer?
-    let deeplab = DeepLab()
-    let size = 513
-    let numRuns = 10
+    let myModel = yolov5()
+    
+    let numRuns = 100
 
     override func viewDidLoad() {
         super.viewDidLoad()
         button.addTarget(self, action: #selector(startBenchmark), for: .touchUpInside)
         label.text = ""
-
+        let inputFeatureDescription = myModel.model.modelDescription.inputDescriptionsByName["image"]
+        let imageConstraints = inputFeatureDescription?.imageConstraint
+        let width = imageConstraints?.pixelsWide
+        let height = imageConstraints?.pixelsHigh
         let image = #imageLiteral(resourceName: "cat.jpg")
-        self.inputData = image.pixelBuffer(width: size, height: size)
+        self.inputData = image.pixelBuffer(width: width ?? 0, height: height ?? 0)
     }
 
     @objc func startBenchmark() {
@@ -40,7 +44,7 @@ class ViewController: UIViewController {
         for i in 1...numRuns {
             do {
                 print(i)
-                let result = try deeplab.prediction(image: self.inputData!)
+                let result = try myModel.prediction(image: self.inputData!)
             } catch let error {
                 print(error.localizedDescription)
             }
